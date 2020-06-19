@@ -1,0 +1,242 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "menu.h"
+
+#define AR_CLIENTE "clientes.dat"
+
+typedef struct{
+   int  id; /// campo único y autoincremental
+   int nroCliente;
+   char nombre[30];
+   char apellido[30];
+   int dni;
+   char email[30];
+   char domicilio[45];
+   int movil;
+   int baja; /// 0 si está activo - 1 si está eliminado
+}stCliente;
+
+int validaEmail(char email[]);
+stCliente cargaUnCliente();
+int buscaUltimoId();
+void cargaArchivoClientes();
+void guardaUnCliente(stCliente c);
+int existeCliente(int cliente);
+void muestraUnCliente(stCliente c);
+void muestraArchClientes();
+int buscaPos(int id);
+void modificaRegistro(stCliente c, int idCliente);
+
+int main()
+{
+    ///iniciarMenu();
+    
+    ///CARGA DE CLIENTES
+    cargaArchivoClientes();
+    muestraArchClientes();
+    ///FIN DE CARGA DE CLIENTES
+    
+    ///MODIFICA CLIENTE
+    stCliente cliente;
+    int idCliente=-1;
+
+    printf("\nCarga los datos del cliente a modificar\n");
+    cliente = cargaUnCliente();
+
+    printf("\nIngrese el id del cliente a modificar\n");
+    scanf("%d", &idCliente);
+    modificaRegistro(cliente, buscaPos(idCliente));
+    ///FIN MODIFICA CLIENTE
+
+    return 0;
+}
+
+void modificaRegistro(stCliente c, int idCliente)/// En c están los datos nuevos que se quieren guardar
+{                                                /// e idCliente el id del cliente cuyos datos se quieren pisar
+    FILE *pArchClientes = fopen(AR_CLIENTE, "r+b");
+
+    if(pArchClientes)
+    {
+        fseek(pArchClientes, sizeof(stCliente)*idCliente, SEEK_SET);
+        fwrite(&c, sizeof(stCliente), 1, pArchClientes);
+        fclose(pArchClientes);
+    }
+}
+
+int buscaPos(int id)
+{
+    int pos = -1;
+
+    stCliente c;
+
+    FILE *pArchClientes = fopen(AR_CLIENTE, "rb");
+
+    if(pArchClientes)
+    {
+        while(pos==-1 && fread(&c, sizeof(stCliente), 1, pArchClientes) > 0)
+        {
+            if(c.id == id)
+            {
+                pos = ftell(pArchClientes)/sizeof(stCliente)-1;
+            }
+        }
+        fclose(pArchClientes);
+    }
+
+    return pos;
+}
+void cargaArchivoClientes()
+{
+    char opcion=0;
+
+    stCliente c;
+
+    while(opcion!=27)
+    {
+        system("cls");
+
+        printf("\n Carga de Clientes \n");
+
+        c = cargaUnCliente();
+        c.id=buscaUltimoId()+1;
+
+        if (existeCliente(c.nroCliente) == 0)
+        {
+            guardaUnCliente(c);
+        }else
+        {
+            printf("\nEl cliente numero %d ya esta cargado.", c.nroCliente);
+        }
+
+        printf("\n\n ESC para salir ");
+        opcion=getch();
+    }
+}
+
+int existeCliente(int cliente)
+{
+    stCliente c;
+
+    int flag = 0;
+
+    FILE *pArchCliente = fopen(AR_CLIENTE,"rb");
+
+    if(pArchCliente){
+        while(fread(&c,sizeof(stCliente),1,pArchCliente) > 0)
+        {
+            if (c.nroCliente == cliente)
+            {
+                flag = 1;
+            }
+        }
+    }
+    return flag;
+}
+
+void guardaUnCliente(stCliente c)
+{
+    FILE *pArchCliente = fopen(AR_CLIENTE,"ab");
+
+    if(pArchCliente != NULL)  /// if(pArchCliente)
+    {
+        fwrite(&c,sizeof(stCliente),1,pArchCliente);
+        fclose(pArchCliente);
+    }
+}
+int buscaUltimoId()
+{
+    stCliente c;
+
+    int id = -1;
+    FILE *pArchCliente = fopen(AR_CLIENTE,"rb");
+    if(pArchCliente)
+    {
+        fseek(pArchCliente, sizeof(stCliente)*(-1),SEEK_END);
+        if(fread(&c,sizeof(stCliente),1,pArchCliente) > 0)
+        {
+            id = c.id;
+        }
+        fclose(pArchCliente);
+    }
+    return id;
+}
+
+stCliente cargaUnCliente()
+{
+    stCliente c;
+
+    do{
+        printf("\n Ingrese el nro de Cliente..........: ");
+        scanf(" %d", &c.nroCliente);
+    }while(c.nroCliente<0 || c.nroCliente>9999999);
+
+    printf(" Ingrese el Nombre..................: ");
+    fflush(stdin);
+    gets(c.nombre);
+
+    printf(" Ingrese el Apellido................: ");
+    fflush(stdin);
+    gets(c.apellido);
+
+    printf(" Ingrese el DNI.....................: ");
+    scanf(" %d", &c.dni);
+
+    do{
+        printf(" Ingrese el EMail...................: ");
+        fflush(stdin);
+        gets(c.email);
+
+    }while(!validaEmail(c.email));
+
+    printf(" Ingrese el Domicilio...................: ");
+    fflush(stdin);
+    gets(c.domicilio);
+
+    printf(" Ingrese el Numero de celular...........: ");
+    scanf(" %d", &c.movil);
+    c.baja=0;
+    
+    system("cls");
+
+    return c;
+}
+int validaEmail(char email[])
+{
+    int v=strlen(email);
+    int i=0;
+    int flag=0;
+    while(i<v && flag == 0){
+        if(email[i]==64){ /// =='@'
+            flag=1;
+        }
+        i++;
+    }
+    return flag;
+}
+void muestraArchClientes()
+{
+    stCliente c;
+
+    FILE *pArchCliente = fopen(AR_CLIENTE,"rb");
+
+    if(pArchCliente){
+        while(fread(&c,sizeof(stCliente),1,pArchCliente) > 0)
+        {
+            muestraUnCliente(c);
+        }
+    }
+    printf("\n");
+}
+void muestraUnCliente(stCliente c)
+{
+    printf("\n  -----------------------------------------------------------------");
+    printf("\n  ID......................: %d", c.id);
+    printf("\n  Nro de Cliente..........: %d", c.nroCliente);
+    printf("\n  Nombre..................: %s", c.nombre);
+    printf("\n  Apellido................: %s", c.apellido);
+    printf("\n  DNI.....................: %d", c.dni);
+    printf("\n  EMail...................: %s", c.email);
+    printf("\n  Calle...................: %s", c.domicilio);
+    printf("\n  Nro de Celular..........: %d", c.movil);
+    printf("\n  Baja s/n................: %s", (c.baja)?"SI":"NO");
+}

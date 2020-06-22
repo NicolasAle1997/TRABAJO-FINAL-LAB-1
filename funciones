@@ -14,16 +14,6 @@
 #define AR_CONSUMOS "consumos.dat"
 
 typedef struct{
-int id; /// campo único y autoincremental
-int idCliente;
-int anio;
-int mes; /// 1 a 12
-int dia; /// 1 a … dependiendo del mes
-int datosConsumidos; /// expresados en mb.
-int baja; /// 0 si está activo - 1 si está eliminado
-}stConsumos;
-
-typedef struct{
    int  id; /// campo único y autoincremental
    int nroCliente;
    char nombre[30];
@@ -31,9 +21,19 @@ typedef struct{
    int dni;
    char email[30];
    char domicilio[45];
-   int movil;
+   char movil[15];
    int baja; /// 0 si está activo - 1 si está eliminado
 }stCliente;
+typedef struct{
+    int id; /// campo único y autoincremental
+    int idCliente;
+    int anio;
+    int mes; /// 1 a 12
+    int dia; /// 1 a … dependiendo del mes
+    int datosConsumidos; /// expresados en mb.
+    int baja; /// 0 si está activo - 1 si está eliminado
+}stConsumos;
+
 ///FUNCIONES CLIENTES
 int validaEmail(char email[]);
 stCliente cargaUnCliente();
@@ -87,7 +87,7 @@ int main()
     ///iniciarMenu();
 
     ///CARGA DE CLIENTES
-    cargaArchivoClientes(AR_CLIENTE);
+  //  cargaArchivoClientes(AR_CLIENTE);
     muestraArch(AR_CLIENTE);
     ///FIN DE CARGA DE CLIENTES
 
@@ -102,10 +102,10 @@ int main()
     creaArchivo(AR_CLI_BAJA, 1);
 
     ///MODIFICA CLIENTE
-    printf("\nCarga los datos del cliente a modificar\n");
-    cliente = cargaUnCliente();
     printf("\nIngrese el id del cliente a modificar\n");
     scanf("%d", &idCliente);
+    printf("\nCarga los datos del cliente a modificar\n");
+    cliente = cargaUnCliente();
     modificaRegistro(cliente, buscaPos(idCliente, AR_CLIENTE));
     ///FIN MODIFICA CLIENTE
 
@@ -136,7 +136,7 @@ int main()
     muestraArregloString(FIL, COL, email, vMails);
 
     ///CARGA DE CONSUMOS
-    cargaArchivoConsumos(AR_CONSUMOS);
+    cargaArchivoConsumos();
     muestraArchConsumos(AR_CONSUMOS);
     ///FIN
 
@@ -181,7 +181,7 @@ stConsumos cargaUnConsumoUser()
     return c;
 }
 void modificaRegistroConsumos(stConsumos c, int idConsumo)/// En c están los datos nuevos que se quieren guardar
-{                                                /// e idConsumo el id del cliente cuyos datos se quieren pisar
+{                                                        /// e idConsumo el id del cliente cuyos datos se quieren pisar
     FILE *pArchConsumo = fopen(AR_CONSUMOS, "r+b");
 
     if(pArchConsumo)
@@ -191,7 +191,6 @@ void modificaRegistroConsumos(stConsumos c, int idConsumo)/// En c están los da
         fclose(pArchConsumo);
     }
 }
-
 int buscaIdXFechaConsumo(int dia, int mes, int anio)
 {
     int id = -1;
@@ -214,7 +213,6 @@ int buscaIdXFechaConsumo(int dia, int mes, int anio)
 
     return id;
 }
-
 void bajaConsumo(int dia, int mes, int anio)
 {
     stConsumos c;
@@ -316,7 +314,6 @@ int diaActual()
     scanf("%d", &dia);
     return dia;
 }
-
 int ultimoConsumoDia(int mes, int dia, int idCliente)
 {
     int consumo=0;
@@ -359,7 +356,6 @@ stConsumos cargaUnConsumo(int dia, int mes, int anio)
 
     return c;
 }
-
 void muestraArchConsumos(char nombreArchivo[])
 {
     printf("\nLista de consumos: \n");
@@ -382,9 +378,6 @@ void muestraUnConsumo(stConsumos c)
     printf("\n  ID: %d // ID Cliente: %d // Anio: %d // Mes: %d // Dia: %d // Datos consumidos: %d // Baja S/N: %s ", c.id, c.idCliente, c.anio, c.mes, c.dia, c.datosConsumidos, (c.baja)?"SI":"NO");
 }
 
-/**
-//////////////////////////////////////////////////////////////////////////////////////////////
-*/
 void muestraArregloString(int fil, int col, char as[][col], int v)
 {
     printf("\n");
@@ -604,7 +597,6 @@ int buscaPos(int id, char nombreArchivo[])
 
     return pos;
 }
-
 void cargaArchivoClientes(char nombreArchivo[])
 {
     char opcion=0;
@@ -632,7 +624,6 @@ void cargaArchivoClientes(char nombreArchivo[])
         opcion=getch();
     }
 }
-
 int existeCliente(int cliente)
 {
     stCliente c;
@@ -681,7 +672,6 @@ int buscaUltimoIdCliente()
     }
     return id;
 }
-
 stCliente cargaUnCliente()
 {
     stCliente c;
@@ -706,7 +696,6 @@ stCliente cargaUnCliente()
         printf(" Ingrese el EMail...................: ");
         fflush(stdin);
         gets(c.email);
-
     }while(!validaEmail(c.email));
 
     printf(" Ingrese el Domicilio...................: ");
@@ -714,7 +703,9 @@ stCliente cargaUnCliente()
     gets(c.domicilio);
 
     printf(" Ingrese el Numero de celular...........: ");
-    scanf(" %d", &c.movil);
+    fflush(stdin);
+    gets(c.movil);
+
     c.baja=0;
 
     return c;
@@ -758,6 +749,6 @@ void muestraUnCliente(stCliente c)
     printf("\n  DNI.....................: %d", c.dni);
     printf("\n  EMail...................: %s", c.email);
     printf("\n  Calle...................: %s", c.domicilio);
-    printf("\n  Nro de Celular..........: %d", c.movil);
+    printf("\n  Nro de Celular..........: %s", c.movil);
     printf("\n  Baja s/n................: %s", (c.baja)?"SI":"NO");
 }
